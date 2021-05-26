@@ -79,7 +79,7 @@ class DataReader:
 
 # -----------------------------------------------------------------------------------------------------------------
 
-class Word2vecDataset(Dataset):
+class Word2vecDataset:
     def __init__(self, data, window_size):
         self.data = data
         self.window_size = window_size

@@ -14,7 +14,7 @@ import numpy as np
 class DataReader:
     NEGATIVE_TABLE_SIZE = 1e8
 
-    def __init__(self, inputFileName, min_count):
+    def __init__(self, train_dir, inputFileName, min_count):
 
         self.negatives = []
         self.discards = []
@@ -26,7 +26,7 @@ class DataReader:
         self.token_count = 0
         self.word_frequency = dict()
 
-        self.inputFileName = inputFileName
+        self.inputFileName = os.path.join(train_dir, inputFileName)
         self.read_words(min_count)
         self.initTableNegatives()
         self.initTableDiscards()
@@ -154,10 +154,10 @@ class SkipGramModel(nn.Module):
 
 
 class Word2VecTrainer:
-    def __init__(self, input_file, model_dir, emb_dimension, batch_size, window_size, iterations,
+    def __init__(self, train_dir, input_file, model_dir, emb_dimension, batch_size, window_size, iterations,
                  initial_lr, min_count):
         
-        self.data = DataReader(input_file, min_count)
+        self.data = DataReader(train_dir, input_file, min_count)
         dataset = Word2vecDataset(self.data, window_size)
         self.dataloader = DataLoader(dataset, batch_size=batch_size,
                                      shuffle=False, num_workers=0, collate_fn=dataset.collate)
@@ -206,7 +206,8 @@ class Word2VecTrainer:
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--input_file', help = 'text file for training data', default = os.environ['SM_CHANNEL_TRAIN'])
+    parser.add_argument('--input_file', help = 'text file for training data', required = True)
+    parser.add_argument('--train_dir',  default = os.environ['SM_CHANNEL_TRAIN'])
     parser.add_argument('--model_dir', help = 'file location for trained embeddings', default = os.environ['SM_MODEL_DIR'])
     parser.add_argument('--emb_dimension', help = 'dimension of trained embedding', default = 100, required = False)
     parser.add_argument('--batch_size', default = 32, required = False)

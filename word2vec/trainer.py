@@ -198,7 +198,7 @@ class Word2VecTrainer:
                     if i > 0 and i % 500 == 0:
                         print(" Loss: " + str(running_loss))
 
-            with open(os.path.join(args.model_dir, 'model.pth'), 'wb') as f:
+            with open(os.path.join(self.model_dir, 'model.pth'), 'wb') as f:
                 torch.save(self.skip_gram_model.cpu().state_dict(), f)
 
 

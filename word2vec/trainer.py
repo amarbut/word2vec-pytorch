@@ -206,8 +206,8 @@ class Word2VecTrainer:
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--input_file', help = 'text file for training data', default = 'SM_TRAINING_CHANNEL')
-    parser.add_argument('--model_dir', help = 'file location for trained embeddings', default = 'SM_MODEL_DIR')
+    parser.add_argument('--input_file', help = 'text file for training data', default = json.loads(os.environ['SM_TRAINING_CHANNEL']))
+    parser.add_argument('--model_dir', help = 'file location for trained embeddings', default = json.loads(os.environ['SM_MODEL_DIR']))
     parser.add_argument('--emb_dimension', help = 'dimension of trained embedding', default = 100, required = False)
     parser.add_argument('--batch_size', default = 32, required = False)
     parser.add_argument('--window_size', help = 'training window size', default = 5, required = False)

@@ -8,6 +8,7 @@ import argparse
 import os
 import json
 import sagemaker_containers
+import boto3
 import numpy as np
 
 class DataReader:
@@ -31,9 +32,10 @@ class DataReader:
         self.initTableDiscards()
 
     def read_words(self, min_count):
+        
         word_frequency = dict()
-        for line in open(os.path(self.inputFileName), 'rb'):
-            line = line.decode("utf8").split()
+        for line in open(self.inputFileName, encoding = 'utf8'):
+            line = line.split()
             if len(line) > 1:
                 self.sentences_count += 1
                 for word in line:
@@ -144,23 +146,23 @@ class SkipGramModel(nn.Module):
 
         return torch.mean(score + neg_score)
 
-    def save_embedding(self, file_name):
-        with open(os.path(file_name), 'wb') as f:
+    def save_embedding(self, model_dir):
+        with open(os.path.join(model_dir, 'model.pth'), 'wb') as f:
             torch.save(self.cpu().state_dict(), f)
 
 #-------------------------------------------------------------------------------------------------------
 
 
 class Word2VecTrainer:
-    def __init__(self, input_file, output_file, emb_dimension, batch_size, window_size, iterations,
+    def __init__(self, input_file, model_dir, emb_dimension, batch_size, window_size, iterations,
                  initial_lr, min_count):
-
+        
         self.data = DataReader(input_file, min_count)
         dataset = Word2vecDataset(self.data, window_size)
         self.dataloader = DataLoader(dataset, batch_size=batch_size,
                                      shuffle=False, num_workers=0, collate_fn=dataset.collate)
 
-        self.output_file_name = output_file
+        self.model_dir = model_dir
         self.emb_size = len(self.data.word2id)
         self.emb_dimension = emb_dimension
         self.batch_size = batch_size
@@ -199,13 +201,13 @@ class Word2VecTrainer:
                     if i > 0 and i % 500 == 0:
                         print(" Loss: " + str(running_loss))
 
-            self.skip_gram_model.save_embedding(self.data.id2word, self.output_file_name)
+            self.skip_gram_model.save_embedding(self.data.id2word, self.model_dir)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--input_file', help = 'text file for training data', required = True)
-    parser.add_argument('--output_file', help = 'file location for trained embeddings', required = True)
+    parser.add_argument('--input_file', help = 'text file for training data', default = 'SM_TRAINING_CHANNEL')
+    parser.add_argument('--model_dir', help = 'file location for trained embeddings', default = 'SM_MODEL_DIR')
     parser.add_argument('--emb_dimension', help = 'dimension of trained embedding', default = 100, required = False)
     parser.add_argument('--batch_size', default = 32, required = False)
     parser.add_argument('--window_size', help = 'training window size', default = 5, required = False)

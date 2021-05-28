@@ -212,7 +212,6 @@ if __name__ == '__main__':
     parser.add_argument('--initial_lr', help = 'starting learning rate, to be updated by sparse_adam optimizer', default = 0.001, required = False)
     parser.add_argument('--min_count', help = 'minimum word frequency for inclusion', default = 12, required = False)
     #sagemaker container environment
-    parser.add_argument("--hosts", type=list, default=json.loads(os.environ["SM_HOSTS"]))
     parser.add_argument("--current-host", type=str, default=os.environ["SM_CURRENT_HOST"])
     parser.add_argument("--model-dir", type=str, default=os.environ["SM_MODEL_DIR"])
     parser.add_argument("--data-dir", type=str, default=os.environ["SM_CHANNEL_TRAIN"])

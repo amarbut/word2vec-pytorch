@@ -146,9 +146,6 @@ class SkipGramModel(nn.Module):
 
         return torch.mean(score + neg_score)
 
-    def save_embedding(self, model_dir):
-        with open(os.path.join(model_dir, 'model.pth'), 'wb') as f:
-            torch.save(self.cpu().state_dict(), f)
 
 #-------------------------------------------------------------------------------------------------------
 
@@ -201,7 +198,8 @@ class Word2VecTrainer:
                     if i > 0 and i % 500 == 0:
                         print(" Loss: " + str(running_loss))
 
-            self.skip_gram_model.save_embedding(self.data.id2word, self.model_dir)
+            with open(os.path.join(args.model_dir, 'model.pth'), 'wb') as f:
+                torch.save(self.skip_gram_model.cpu().state_dict(), f)
 
 
 if __name__ == '__main__':

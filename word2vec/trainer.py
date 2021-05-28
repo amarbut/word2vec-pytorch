@@ -32,8 +32,8 @@ class DataReader:
 
     def read_words(self, min_count):
         word_frequency = dict()
-        for line in open(self.inputFileName, encoding="utf8"):
-            line = line.split()
+        for line in open(os.path(self.inputFileName), 'rb'):
+            line = line.decode("utf8").split()
             if len(line) > 1:
                 self.sentences_count += 1
                 for word in line:
@@ -145,7 +145,8 @@ class SkipGramModel(nn.Module):
         return torch.mean(score + neg_score)
 
     def save_embedding(self, file_name):
-        torch.save(self.cpu().state_dict(), file_name)
+        with open(os.path(file_name), 'wb') as f:
+            torch.save(self.cpu().state_dict(), f)
 
 #-------------------------------------------------------------------------------------------------------
 

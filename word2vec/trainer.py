@@ -6,9 +6,6 @@ import torch.nn.functional as F
 from torch.nn import init
 import argparse
 import os
-import json
-import sagemaker_containers
-import boto3
 import numpy as np
 
 class DataReader:

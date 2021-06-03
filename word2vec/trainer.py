@@ -7,6 +7,8 @@ from torch.nn import init
 import argparse
 import os
 import numpy as np
+import pickle
+import json
 
 class DataReader:
     NEGATIVE_TABLE_SIZE = 1e8
@@ -117,10 +119,11 @@ class Word2vecDataset:
 
 class SkipGramModel(nn.Module):
 
-    def __init__(self, emb_size, emb_dimension):
+    def __init__(self, emb_size, emb_dimension, word2id):
         super(SkipGramModel, self).__init__()
         self.emb_size = emb_size
         self.emb_dimension = emb_dimension
+        self.word2id = word2id
         self.u_embeddings = nn.Embedding(emb_size, emb_dimension, sparse=True)
         self.v_embeddings = nn.Embedding(emb_size, emb_dimension, sparse=True)
 
@@ -162,7 +165,7 @@ class Word2VecTrainer:
         self.batch_size = batch_size
         self.iterations = iterations
         self.initial_lr = initial_lr
-        self.skip_gram_model = SkipGramModel(self.emb_size, self.emb_dimension)
+        self.skip_gram_model = SkipGramModel(self.emb_size, self.emb_dimension, self.data.word2id)
 
         self.use_cuda = torch.cuda.is_available()
         self.device = torch.device("cuda" if self.use_cuda else "cpu")
@@ -197,6 +200,44 @@ class Word2VecTrainer:
 
             with open(os.path.join(self.model_dir, 'model.pth'), 'wb') as f:
                 torch.save(self.skip_gram_model.cpu().state_dict(), f)
+
+#-----------------------------------------------------------------------------------------------------------------
+                
+#sagemaker model loading function
+def model_fn(model_dir):
+    model = SkipGramModel()
+    with open(os.path.join(model_dir, "model.pth"), "rb") as f:
+        model.load_state_dict(torch.load(f))
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model.to(device)
+    model.eval()
+    embeddings = model.u_embeddings.weight().data.numpy()
+    word2id = model.word2id
+    return {'embeddings':embeddings, 'word2id':word2id}
+
+def input_fn(request_body, request_content_type = 'application/json'):
+    if request_content_type == 'application/json':
+        return json.loads(request_body)
+    raise Exception(request_content_type, ": input type not supported")
+    
+    
+def predict_fn(input_data, model):
+    word2id = model['word2id']
+    ids = []
+    for w in input_data['words']:
+        ids.append(word2id[w])
+    embeddings = model['embeddings']
+    response = dict()
+    for i,w in enumerate(input_data):
+        response[w] = embeddings[word2id[i]]
+    return response
+
+def output_fn(prediction, accept = 'application/json'):
+    if accept == 'application/json':
+        return json.dumps(prediction), accept
+    raise Exception(accept, ': content type not supported')
+    
+#------------------------------------------------------------------------------------------------------------------
 
 
 if __name__ == '__main__':

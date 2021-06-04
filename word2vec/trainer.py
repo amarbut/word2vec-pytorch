@@ -119,11 +119,10 @@ class Word2vecDataset:
 
 class SkipGramModel(nn.Module):
 
-    def __init__(self, emb_size, emb_dimension, word2id):
+    def __init__(self, emb_size, emb_dimension):
         super(SkipGramModel, self).__init__()
         self.emb_size = emb_size
         self.emb_dimension = emb_dimension
-        self.word2id = word2id
         self.u_embeddings = nn.Embedding(emb_size, emb_dimension, sparse=True)
         self.v_embeddings = nn.Embedding(emb_size, emb_dimension, sparse=True)
 
@@ -165,7 +164,7 @@ class Word2VecTrainer:
         self.batch_size = batch_size
         self.iterations = iterations
         self.initial_lr = initial_lr
-        self.skip_gram_model = SkipGramModel(self.emb_size, self.emb_dimension, self.data.word2id)
+        self.skip_gram_model = SkipGramModel(self.emb_size, self.emb_dimension)
 
         self.use_cuda = torch.cuda.is_available()
         self.device = torch.device("cuda" if self.use_cuda else "cpu")
@@ -200,19 +199,27 @@ class Word2VecTrainer:
 
             with open(os.path.join(self.model_dir, 'model.pth'), 'wb') as f:
                 torch.save(self.skip_gram_model.cpu().state_dict(), f)
+                
+            with open(os.path.join(self.model_dir, 'model_info.pth'), 'wb') as f:
+                model_info = {'emb_size': self.emb_size,
+                              'emb_dimension': self.emb_dimension,
+                              'word2id': self.data.word2id}
+                torch.save(model_info, f)
 
 #-----------------------------------------------------------------------------------------------------------------
                 
 #sagemaker model loading function
 def model_fn(model_dir):
-    model = SkipGramModel()
+    with open(os.path.join(model_dir, 'model_info.pth'), 'rb') as f:
+        model_info = torch.load(f)
+    model = SkipGramModel(emb_size = model_info['emb_size'], emb_dimension = model_info['emb_dimension'])
     with open(os.path.join(model_dir, "model.pth"), "rb") as f:
         model.load_state_dict(torch.load(f))
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
     model.eval()
     embeddings = model.u_embeddings.weight().data.numpy()
-    word2id = model.word2id
+    word2id = model_info['word2id']
     return {'embeddings':embeddings, 'word2id':word2id}
 
 def input_fn(request_body, request_content_type = 'application/json'):

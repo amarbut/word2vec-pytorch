@@ -53,7 +53,7 @@ def model_fn(model_dir):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
     model.eval()
-    embeddings = model.u_embeddings.weight().data.numpy()
+    embeddings = model.u_embeddings.weight.data.numpy()
     word2id = model_info['word2id']
     return {'embeddings':embeddings, 'word2id':word2id}
 

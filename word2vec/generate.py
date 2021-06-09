@@ -68,9 +68,9 @@ def predict_fn(input_data, model):
     ids = []
     words = input_data['words']
     for w in words:
-        try:
+        if word2id[w]:
             ids.append(word2id[w])
-        except:
+        else:
             print(w, ' not in vocabulary. No embedding to return.')
     embeddings = model['embeddings']
     response = dict()

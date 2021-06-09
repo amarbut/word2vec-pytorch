@@ -231,12 +231,9 @@ def input_fn(request_body, request_content_type = 'application/json'):
 def predict_fn(input_data, model):
     word2id = model['word2id']
     ids = []
-    words = input_data['words']
+    words = [w for w in input_data['words'] if w in word2id]
     for w in words:
-        if word2id[w]:
-            ids.append(word2id[w])
-        else:
-            print(w, ' not in vocabulary. No embedding to return.')
+        ids.append(word2id[w])
     embeddings = model['embeddings']
     response = dict()
     for i,w in enumerate(words):

@@ -240,7 +240,7 @@ def predict_fn(input_data, model):
     embeddings = model['embeddings']
     response = dict()
     for i,w in enumerate(words):
-        response[w] = embeddings[ids[i]]
+        response[w] = embeddings[ids[i]].tolist()
     return response
 
 def output_fn(prediction, accept = 'application/json'):

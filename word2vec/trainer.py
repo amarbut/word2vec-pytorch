@@ -231,12 +231,16 @@ def input_fn(request_body, request_content_type = 'application/json'):
 def predict_fn(input_data, model):
     word2id = model['word2id']
     ids = []
-    for w in input_data['words']:
-        ids.append(word2id[w])
+    words = input_data['words']
+    for w in words:
+        try:
+            ids.append(word2id[w])
+        except:
+            print(w, ' not in vocabulary. No embedding to return.')
     embeddings = model['embeddings']
     response = dict()
-    for i,w in enumerate(input_data):
-        response[w] = embeddings[word2id[i]]
+    for i,w in enumerate(words):
+        response[w] = embeddings[ids[i]]
     return response
 
 def output_fn(prediction, accept = 'application/json'):

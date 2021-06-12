@@ -195,10 +195,12 @@ class Word2VecTrainer:
 
                     running_loss = running_loss * 0.9 + loss.item() * 0.1
                     if i > 0 and i % 500 == 0:
-                        print(" Loss: " + str(running_loss))
+                        print(i/len(self.dataloader),"% Loss: " + str(running_loss))
 
             with open(os.path.join(self.model_dir, 'model.pth'), 'wb') as f:
                 torch.save(self.skip_gram_model.cpu().state_dict(), f)
+                if self.use_cuda:
+                    self.skip_gram_model.cuda()
                 
             with open(os.path.join(self.model_dir, 'model_info.pth'), 'wb') as f:
                 model_info = {'emb_size': self.emb_size,

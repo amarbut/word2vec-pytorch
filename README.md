@@ -1,3 +1,6 @@
+# AWS Sagemaker Implementation
+Forked from Andras7 and edited to work in the AWS Sagemaker environment.
+
 # Word2vec Pytorch
 
 Fast word2vec implementation at competitive speed compared with fasttext. The slowest part is the python data loader. Indeed, Python isn't the fastest programming language, maybe you can improve the code :)
